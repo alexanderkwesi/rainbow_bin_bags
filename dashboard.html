@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Management Dashboard - Rainbow Bags</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Custom UI classes specific to dashboard components */
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+
+        .chart-title {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+
+        .chart-bars-flex {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .chart-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .chart-label {
+            width: 140px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .chart-track {
+            flex-grow: 1;
+            height: 24px;
+            background: rgba(226, 232, 240, 0.5);
+            border-radius: 9999px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chart-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--rainbow-gradient);
+        }
+
+        .chart-value {
+            width: 50px;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* Specific colorful background styles for charts */
+        .fill-small { background: linear-gradient(90deg, #9933ff, #cc33ff); }
+        .fill-medium { background: linear-gradient(90deg, #3399ff, #33cc66); }
+        .fill-rainbow { background: var(--rainbow-gradient); }
+        .fill-large { background: linear-gradient(90deg, #475569, #0f172a); }
+        .fill-xlarge { background: linear-gradient(90deg, #6633ff, #ff3366); }
+
+        .select-status {
+            font-family: inherit;
+            font-weight: 600;
+            border-radius: 8px;
+            padding: 0.3rem 0.6rem;
+            border: 1px solid var(--border-color);
+            background: #ffffff;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+        }
+        
+        .select-status:focus {
+            border-color: var(--rainbow-indigo);
+        }
+
+        .admin-nav-item.active-tab {
+            background: var(--rainbow-gradient);
+            color: #ffffff;
+        }
+
+        /* Login Screen Specific Styles */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, rgba(255, 51, 102, 0.05) 0%, rgba(204, 51, 255, 0.05) 100%), #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100002;
+        }
+
+        .login-card {
+            background: #ffffff;
+            border-radius: 32px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 45px rgba(0,0,0,0.06);
+            padding: 3rem;
+            width: 100%;
+            max-width: 420px;
+            text-align: center;
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="dashboard-layout" style="display: none;">
+        <!-- Header / Navbar -->
+        <header id="main-header">
+        <a href="index.html" class="logo">
+            <svg viewBox="0 0 32 32" fill="none">
+                <path d="M6,10 C10,32 22,32 26,10 C26,7 23,7 16,8 C9,7 6,7 6,10 Z" fill="url(#logo-rainbow-grad)" />
+                <path d="M8,9 C16,11 24,9 24,9" stroke="white" stroke-width="2" stroke-linecap="round" />
+                <defs>
+                    <linearGradient id="logo-rainbow-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ff3366" />
+                        <stop offset="50%" style="stop-color:#3399ff" />
+                        <stop offset="100%" style="stop-color:#cc33ff" />
+                    </linearGradient>
+                </defs>
+            </svg>
+            <span class="rainbow-text">Rainbow Bags Admin</span>
+        </a>
+        
+        <ul class="nav-links">
+            <li><a href="index.html">View Storefront</a></li>
+            <li><a href="#" onclick="logoutDemo()" class="btn btn-white btn-sm" style="border-radius:12px;">Log Out</a></li>
+        </ul>
+    </header>
+
+    <div class="admin-container">
+        <!-- Sidebar Navigation -->
+        <aside class="admin-sidebar">
+            <nav class="admin-nav">
+                <div class="admin-nav-item active-tab" data-target="overview" id="nav-overview">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Overview</span>
+                </div>
+                <div class="admin-nav-item" data-target="products" id="nav-products">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Inventory</span>
+                </div>
+                <div class="admin-nav-item" data-target="orders" id="nav-orders">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Orders</span>
+                </div>
+                <div class="admin-nav-item" data-target="messages" id="nav-messages">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    <span>Messages</span>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-content">
+            
+            <!-- Alert message bars -->
+            <div id="alert-success" style="display:none; background:rgba(51,204,102,0.1); color:var(--rainbow-green); border-radius:12px; padding:1rem; margin-bottom:1.5rem; font-weight: 500;"></div>
+            <div id="alert-error" style="display:none; background:rgba(255,51,102,0.1); color:var(--rainbow-red); border-radius:12px; padding:1rem; margin-bottom:1.5rem; font-weight: 500;"></div>
+
+            <!-- TAB 1: OVERVIEW -->
+            <div id="tab-overview" class="tab-view">
+                <div class="admin-header-actions">
+                    <h2>Performance Dashboard</h2>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;">Real-time LocalStorage reporting</p>
+                </div>
+
+                <div class="admin-stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-card-title">Total Sales Revenue</span>
+                        <span class="stat-card-value" id="stat-revenue">£0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Total Orders</span>
+                        <span class="stat-card-value" id="stat-orders">0</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Average Order Value</span>
+                        <span class="stat-card-value" id="stat-aov">£0.00</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-card-title">Low Stock Warnings</span>
+                        <span class="stat-card-value" id="stat-lowstock" style="color: var(--rainbow-red);">0</span>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="chart-container">
+                    <h3 class="chart-title">Bag Volume Distribution Sold (Total Units)</h3>
+                    <div class="chart-bars-flex" id="chart-bars">
+                        <!-- Plotted dynamically in dashboard.js -->
+                    </div>
+                </div>
+
+                <!-- Recent Orders Log Preview -->
+                <h3 style="margin-top:2.5rem; margin-bottom:1rem;">Recent Orders</h3>
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer Name</th>
+                                <th>Date</th>
+                                <th>Total paid</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recent-orders-list">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: INVENTORY -->
+            <div id="tab-products" class="tab-view" style="display:none;">
+                <div class="admin-header-actions">
+                    <h2>Product Inventory</h2>
+                    <button class="btn btn-rainbow btn-sm" onclick="openAddProductModal()">+ Add New Product</button>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Product Name</th>
+                                <th>SKU</th>
+                                <th>Size</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 3: ORDERS -->
+            <div id="tab-orders" class="tab-view" style="display:none;">
+                <div class="admin-header-actions">
+                    <h2>Orders Log</h2>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;" id="orders-count-label">0 total orders listed</p>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer Details</th>
+                                <th>Purchased Items</th>
+                                <th>Total amount</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-full-list">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 4: MESSAGES -->
+            <div id="tab-messages" class="tab-view" style="display:none;">
+                <div class="admin-header-actions">
+                    <h2>Customer Support Inquiries</h2>
+                    <p style="color:var(--text-secondary); font-size:0.9rem;" id="messages-count-label">0 total inquiries</p>
+                </div>
+
+                <div class="admin-table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="messages-list">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Product CRUD Modal -->
+    <div class="admin-modal" id="product-modal">
+        <div class="admin-modal-content">
+            <h3 style="font-size:1.8rem; margin-bottom:1.5rem;" id="modal-title">Add New Product</h3>
+            
+            <form id="product-form">
+                <input type="hidden" id="prod-id">
+                
+                <div class="form-group">
+                    <label for="prod-name" class="form-label">Product Name</label>
+                    <input type="text" id="prod-name" class="form-control" placeholder="Heavy-Duty Rainbow Refuse Sacks" required>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;" class="form-group">
+                    <div>
+                        <label for="prod-sku" class="form-label">SKU Code</label>
+                        <input type="text" id="prod-sku" class="form-control" placeholder="BB-R-50L" required>
+                    </div>
+                    <div>
+                        <label for="prod-size" class="form-label">Size Dimension</label>
+                        <input type="text" id="prod-size" class="form-control" placeholder="Medium (50L)" required>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;" class="form-group">
+                    <div>
+                        <label for="prod-price" class="form-label">Price (£)</label>
+                        <input type="number" id="prod-price" class="form-control" step="0.01" min="0.01" placeholder="9.49" required>
+                    </div>
+                    <div>
+                        <label for="prod-stock" class="form-label">Inventory Stock</label>
+                        <input type="number" id="prod-stock" class="form-control" min="0" placeholder="120" required>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:1rem;" class="form-group">
+                    <div>
+                        <label for="prod-capacity" class="form-label">Capacity (L)</label>
+                        <input type="text" id="prod-capacity" class="form-control" placeholder="50 Litres" required>
+                    </div>
+                    <div>
+                        <label for="prod-dimensions" class="form-label">Dimensions</label>
+                        <input type="text" id="prod-dimensions" class="form-control" placeholder="60 x 85 cm" required>
+                    </div>
+                    <div>
+                        <label for="prod-pack-qty" class="form-label">Pack Qty</label>
+                        <input type="text" id="prod-pack-qty" class="form-control" placeholder="15 Sacks" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="prod-image-url" class="form-label">Product Image URL / Style Key</label>
+                    <input type="text" id="prod-image-url" class="form-control" placeholder="images/rainbow_refuse_sacks.jpg or small_bag" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom:2rem;">
+                    <label for="prod-desc" class="form-label">Description Details</label>
+                    <textarea id="prod-desc" class="form-control" placeholder="Write description details here..." required></textarea>
+                </div>
+
+                <div style="display:flex; gap:1rem;">
+                    <button type="button" class="btn btn-white" onclick="closeProductModal()" style="flex:1;">Cancel</button>
+                    <button type="submit" class="btn btn-rainbow" id="modal-submit-btn" style="flex:2;">Save Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Message Reader Modal -->
+    <div class="admin-modal" id="message-modal">
+        <div class="admin-modal-content">
+            <h3 style="font-size:1.6rem; margin-bottom:1rem;" id="msg-modal-subject">Subject line</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;" id="msg-modal-meta">From: Name (email) on date</p>
+            
+            <div style="background:var(--bg-secondary); border-radius:12px; padding:1.5rem; line-height:1.6; margin-bottom:2rem; white-space:pre-wrap; border:1px solid var(--border-color);" id="msg-modal-content">
+                Message content body
+            </div>
+            
+            <button class="btn btn-rainbow" onclick="closeMessageModal()" style="width:100%;">Close Message</button>
+        </div>
+    </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="logo" style="justify-content:center; margin-bottom: 2rem;">
+                <svg viewBox="0 0 32 32" fill="none" style="width:40px; height:40px;">
+                    <path d="M6,10 C10,32 22,32 26,10 C26,7 23,7 16,8 C9,7 6,7 6,10 Z" fill="url(#logo-rainbow-grad-login)" />
+                    <path d="M8,9 C16,11 24,9 24,9" stroke="white" stroke-width="2" stroke-linecap="round" />
+                    <defs>
+                        <linearGradient id="logo-rainbow-grad-login" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#ff3366" />
+                            <stop offset="50%" style="stop-color:#3399ff" />
+                            <stop offset="100%" style="stop-color:#cc33ff" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+                <span class="rainbow-text">Rainbow Bags</span>
+            </div>
+            
+            <h2 style="font-size:1.6rem; margin-bottom:0.5rem;">Admin Control Room</h2>
+            <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:2rem;">Sign in to manage inventory & sales</p>
+            
+            <div id="login-error" style="display:none; background:rgba(255,51,102,0.1); color:var(--rainbow-red); border-radius:12px; padding:0.8rem; font-size:0.88rem; margin-bottom:1.5rem; text-align:left; font-weight: 500;">
+                Invalid username or password.
+            </div>
+            
+            <form id="login-form">
+                <div class="form-group" style="text-align:left;">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" id="login-username" class="form-control" placeholder="Enter username" required autocomplete="username">
+                </div>
+                <div class="form-group" style="text-align:left; margin-bottom: 2rem;">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" id="login-password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="btn btn-rainbow" style="width:100%;">Access Dashboard</button>
+            </form>
+
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast" id="toast">Update applied!</div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>
